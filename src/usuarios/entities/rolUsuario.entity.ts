@@ -7,8 +7,8 @@ import { Rol } from '../entities/rol.entity';
 @Unique(['usuario', 'rol'])
 export class RolUsuario extends Auditoria {
   @ManyToOne(() => Usuario, (usuario) => usuario.roles, { onDelete: 'CASCADE' })
-  usuario!: Usuario;
+  usuario: Usuario;
 
   @ManyToOne(() => Rol, (rol) => rol.usuarios, { onDelete: 'CASCADE' })
-  rol!: Rol;
+  rol: Rol;
 }
