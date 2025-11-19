@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Patch, Body, Param } from '@nestjs/common';
 import { UsuarioService } from '../services/usuario.service';
 import { CreateUsuarioDto } from '../dto/crear-usuario.dto';
+import { ActualizarUsuarioDto } from '../dto/actualizarUsuario.dto';
 
 @Controller('usuarios')
 export class UsuarioController {
@@ -22,13 +23,19 @@ export class UsuarioController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() data: any) {
-    return this.usuarioService.update(id, data);
+  update(
+    @Param('id') id: number,
+    @Body() actualizarUsuarioAllDto: ActualizarUsuarioDto,
+  ) {
+    return this.usuarioService.update(id, actualizarUsuarioAllDto);
   }
 
   @Patch(':id')
-  partialUpdate(@Param('id') id: number, @Body() data: any) {
-    return this.usuarioService.partialUpdate(id, data);
+  partialUpdate(
+    @Param('id') id: number,
+    @Body() actualizarUsuarioOneDto: ActualizarUsuarioDto,
+  ) {
+    return this.usuarioService.partialUpdate(id, actualizarUsuarioOneDto);
   }
 
   @Post(':id/roles/:rolId')
