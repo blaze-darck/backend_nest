@@ -1,5 +1,6 @@
 import { Auditoria } from 'src/comun/entities/auditoria.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { Producto } from './producto.entity';
 
 @Entity()
 export class CategoriaProducto extends Auditoria {
@@ -8,4 +9,7 @@ export class CategoriaProducto extends Auditoria {
 
   @Column({ type: 'text', nullable: true })
   descripcion: string;
+
+  @OneToMany(() => Producto, (producto) => producto.categoria)
+  productos: Producto[];
 }
