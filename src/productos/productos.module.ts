@@ -17,6 +17,11 @@ import { CategoriaProductoService } from './productoService/categoriaProducto.se
     ProductoRepository,
     categoriaProductoRepository,
   ],
-  exports: [ProductoRepository, categoriaProductoRepository],
+  exports: [
+    ProductoRepository,
+    categoriaProductoRepository,
+    ProductosService,
+    CategoriaProductoService,
+  ],
 })
 export class ProductosModule {}
