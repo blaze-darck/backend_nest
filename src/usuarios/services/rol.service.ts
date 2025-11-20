@@ -8,7 +8,6 @@ import { RolRepository } from '../repositories/rol.repository';
 export class RolService {
   constructor(private readonly rolRepository: RolRepository) {}
 
-  // Obtener solo roles activos
   findAll() {
     return this.rolRepository.find({ where: { activo: true } });
   }
@@ -32,7 +31,6 @@ export class RolService {
     return this.rolRepository.save(rol);
   }
 
-  // Borrado lógico
   async desactivar(id: number) {
     const rol = await this.findOne(id);
     rol.activo = false;
