@@ -7,10 +7,11 @@ import { CategoriaProducto } from './productosEntities/categoriaProducto.entity'
 import { ProductoRepository } from './productoRepositories/producto.repository';
 import { categoriaProductoRepository } from './productoRepositories/categoriaProducto.repository';
 import { CategoriaProductoService } from './productoService/categoriaProducto.service';
+import { CategoriaProductoController } from './productoControllers/categoriaProductos.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Producto, CategoriaProducto])],
-  controllers: [ProductoController],
+  controllers: [ProductoController, CategoriaProductoController],
   providers: [
     ProductosService,
     CategoriaProductoService,
