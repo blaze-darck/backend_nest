@@ -23,26 +23,26 @@ export class CategoriaProductoService {
     return categoria;
   }
 
-  async create(data: any) {
+  async createCategoria(data: any) {
     const categoria = this.categoriaRepository.create(data);
     return this.categoriaRepository.save(categoria);
   }
 
-  async update(id: number, data: any) {
+  async updateCategoria(id: number, data: any) {
     const categoria = await this.findOne(id);
 
     Object.assign(categoria, data);
     return this.categoriaRepository.save(categoria);
   }
 
-  async partialUpdate(id: number, data: any) {
+  async partialUpdateCategoria(id: number, data: any) {
     const categoria = await this.findOne(id);
 
     Object.assign(categoria, data);
     return this.categoriaRepository.save(categoria);
   }
 
-  async desactivar(id: number) {
+  async desactivarCategoria(id: number) {
     const categoria = await this.findOne(id);
 
     categoria.activo = false;
