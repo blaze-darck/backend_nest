@@ -35,6 +35,6 @@ export async function seedRolUsuario(dataSource: DataSource) {
   const rolUsuario = rolUsuarioRepo.create({ usuario, rol });
   await rolUsuarioRepo.save(rolUsuario);
   console.log(
-    `Rol "${rol.nombre}" asignado al usuario "${usuario.nombreUsuario}" exitosamente!`,
+    `Rol "${rol.nombre}" asignado al usuario "${usuario.nombre}" exitosamente!`,
   );
 }

@@ -11,10 +11,6 @@ import {
 export class CreateUsuarioDto {
   @IsString()
   @IsNotEmpty()
-  nombreUsuario: string;
-
-  @IsString()
-  @IsNotEmpty()
   @MinLength(6)
   contrasena: string;
 
@@ -35,11 +31,13 @@ export class CreateUsuarioDto {
   @IsNotEmpty()
   apellidoMaterno: string;
 
+  @IsOptional()
   @IsString()
-  ci: string;
+  ci?: string;
 
+  @IsOptional()
   @IsString()
-  telefono: string;
+  telefono?: string;
 
   @IsOptional()
   @IsArray()

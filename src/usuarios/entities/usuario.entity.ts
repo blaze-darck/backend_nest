@@ -22,9 +22,6 @@ export class Usuario extends Auditoria {
   telefono: string;
 
   @Column({ length: 100, unique: true })
-  nombreUsuario: string;
-
-  @Column({ length: 100, unique: true })
   correo: string;
 
   @Column({ length: 255 })

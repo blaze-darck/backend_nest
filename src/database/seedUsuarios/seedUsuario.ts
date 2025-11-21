@@ -17,7 +17,6 @@ export async function seedUsuarios(dataSource: DataSource) {
     nombre: 'Gabriel',
     apellidoPaterno: 'Paredes',
     apellidoMaterno: 'Gutierrez',
-    nombreUsuario: 'Blaze',
     correo: 'paredesgabriel784@gmail.com',
     contrasena: 'dilegabo',
     ci: '9209113',
