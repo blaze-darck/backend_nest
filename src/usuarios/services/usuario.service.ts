@@ -7,6 +7,7 @@ import {
 import { UsuarioRepository } from '../repositories/usuario.repository';
 import { RolRepository } from '../repositories/rol.repository';
 import { RolUsuarioRepository } from '../repositories/rolUsuario.repository';
+import { CreateUsuarioDto } from '../dto/usuarios/crearUsuario.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -37,21 +38,46 @@ export class UsuarioService {
     return this.usuarioRepository.findOne({ where: { correo, activo: true } });
   }
 
-  create(data: any) {
-    const usuario = this.usuarioRepository.create(data);
-    return this.usuarioRepository.save(usuario);
+  async create(data: CreateUsuarioDto) {
+    const { rolesIds, ...rest } = data;
+
+    const usuario = this.usuarioRepository.create(rest);
+    await this.usuarioRepository.save(usuario);
+
+    if (rolesIds && rolesIds.length > 0) {
+      for (const rolId of rolesIds) {
+        await this.asignarRol(usuario.id, rolId);
+      }
+    }
+
+    return this.findOne(usuario.id);
   }
 
   async update(id: number, data: any) {
     const usuario = await this.findOne(id);
-    Object.assign(usuario, data);
-    return this.usuarioRepository.save(usuario);
+
+    const { rolesAgregarIds, rolesQuitarIds, ...rest } = data;
+
+    Object.assign(usuario, rest);
+    await this.usuarioRepository.save(usuario);
+
+    if (rolesAgregarIds && rolesAgregarIds.length > 0) {
+      for (const rolId of rolesAgregarIds) {
+        await this.asignarRol(usuario.id, rolId);
+      }
+    }
+
+    if (rolesQuitarIds && rolesQuitarIds.length > 0) {
+      for (const rolId of rolesQuitarIds) {
+        await this.quitarRol(usuario.id, rolId);
+      }
+    }
+
+    return this.findOne(usuario.id);
   }
 
   async partialUpdate(id: number, data: any) {
-    const usuario = await this.findOne(id);
-    Object.assign(usuario, data);
-    return this.usuarioRepository.save(usuario);
+    return this.update(id, data);
   }
 
   async desactivar(id: number) {
@@ -62,10 +88,10 @@ export class UsuarioService {
 
   async asignarRol(usuarioId: number, rolId: number) {
     const usuario = await this.findOne(usuarioId);
+
     const rol = await this.rolRepository.findOne({
       where: { id: rolId, activo: true },
     });
-
     if (!rol) throw new NotFoundException('Rol no encontrado');
 
     const existe = await this.rolUsuarioRepository.findOne({
@@ -75,7 +101,12 @@ export class UsuarioService {
     if (existe)
       throw new BadRequestException('El usuario ya tiene este rol asignado');
 
-    const rolUsuario = this.rolUsuarioRepository.create({ usuario, rol });
+    const rolUsuario = this.rolUsuarioRepository.create({
+      usuario,
+      rol,
+      activo: true,
+    });
+
     return this.rolUsuarioRepository.save(rolUsuario);
   }
 
