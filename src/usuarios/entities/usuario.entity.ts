@@ -2,6 +2,7 @@ import { Entity, Column, OneToMany, BeforeInsert, BeforeUpdate } from 'typeorm';
 import { RolUsuario } from '../entities/rolUsuario.entity';
 import { Auditoria } from '../../comun/entities/auditoria.entity';
 import * as bcrypt from 'bcrypt';
+import { Pedido } from 'src/pedidos/pedidosEntities/pedidos.entity';
 
 @Entity()
 export class Usuario extends Auditoria {
@@ -20,7 +21,7 @@ export class Usuario extends Auditoria {
   @Column({ type: 'varchar', length: 20, nullable: true })
   telefono: string;
 
-  @Column({ length: 100 })
+  @Column({ length: 100, unique: true })
   nombreUsuario: string;
 
   @Column({ length: 100, unique: true })
@@ -32,10 +33,15 @@ export class Usuario extends Auditoria {
   @OneToMany(() => RolUsuario, (usuarioRol) => usuarioRol.usuario)
   roles: RolUsuario[];
 
+  @OneToMany(() => Pedido, (pedido) => pedido.cliente)
+  pedidos: Pedido[];
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
-    if (this.contrasena && !this.contrasena.startsWith('$2b$')) {
+    if (!this.contrasena) return;
+
+    if (!this.contrasena.startsWith('$2b$')) {
       const salt = await bcrypt.genSalt(10);
       this.contrasena = await bcrypt.hash(this.contrasena, salt);
     }
