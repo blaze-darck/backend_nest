@@ -21,6 +21,7 @@ export async function seedUsuarios(dataSource: DataSource) {
     contrasena: 'dilegabo',
     ci: '9209113',
     telefono: '77771981',
+    verificado: true,
   });
 
   await usuarioRepo.save(usuario);
