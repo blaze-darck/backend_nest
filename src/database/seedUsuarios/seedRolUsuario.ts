@@ -17,7 +17,7 @@ export async function seedRolUsuario(dataSource: DataSource) {
     return;
   }
 
-  const rol = await rolRepo.findOneBy({ nombre: 'Aministrador' });
+  const rol = await rolRepo.findOneBy({ nombre: 'Administrador' });
   if (!rol) {
     console.log('Rol no encontrado en la base de datos.');
     return;
