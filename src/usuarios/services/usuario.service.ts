@@ -3,11 +3,13 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-
+import { randomBytes } from 'crypto';
 import { UsuarioRepository } from '../repositories/usuario.repository';
 import { RolRepository } from '../repositories/rol.repository';
 import { RolUsuarioRepository } from '../repositories/rolUsuario.repository';
 import { CreateUsuarioDto } from '../dto/usuarios/crearUsuario.dto';
+import { EmailService } from '../services/email.service';
+import { Usuario } from '../entities/usuario.entity';
 
 @Injectable()
 export class UsuarioService {
@@ -15,6 +17,7 @@ export class UsuarioService {
     private readonly usuarioRepository: UsuarioRepository,
     private readonly rolRepository: RolRepository,
     private readonly rolUsuarioRepository: RolUsuarioRepository,
+    private readonly emailService: EmailService,
   ) {}
 
   findAll() {
@@ -38,10 +41,30 @@ export class UsuarioService {
     return this.usuarioRepository.findOne({ where: { correo, activo: true } });
   }
 
+  async findByToken(token: string) {
+    return this.usuarioRepository.findOne({
+      where: { verificacionToken: token },
+    });
+  }
+
+  async verifyUsuario(usuario: Usuario) {
+    usuario.verificado = true;
+    usuario.verificacionToken = null;
+    usuario.verificacionExpirada = null;
+    await this.usuarioRepository.save(usuario);
+  }
+
   async create(data: CreateUsuarioDto) {
     const { rolesIds, ...rest } = data;
 
     const usuario = this.usuarioRepository.create(rest);
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+
+    usuario.verificacionToken = codigo;
+    usuario.verificacionExpirada = new Date(Date.now() + 10 * 60 * 1000);
+    usuario.verificado = false;
+
     await this.usuarioRepository.save(usuario);
 
     if (rolesIds && rolesIds.length > 0) {
@@ -49,6 +72,8 @@ export class UsuarioService {
         await this.asignarRol(usuario.id, rolId);
       }
     }
+
+    await this.emailService.sendVerificationCode(usuario.correo, codigo);
 
     return this.findOne(usuario.id);
   }
