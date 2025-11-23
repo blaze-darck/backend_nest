@@ -7,31 +7,40 @@ import { Pedido } from 'src/pedidos/pedidosEntities/pedidos.entity';
 @Entity()
 export class Usuario extends Auditoria {
   @Column({ length: 100 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ length: 100 })
-  apellidoPaterno: string;
+  apellidoPaterno!: string;
 
   @Column({ length: 100 })
-  apellidoMaterno: string;
+  apellidoMaterno!: string;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
-  ci: string;
+  ci!: string | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
-  telefono: string;
+  telefono!: string | null;
 
   @Column({ length: 100, unique: true })
-  correo: string;
+  correo!: string;
 
   @Column({ length: 255 })
-  contrasena: string;
+  contrasena!: string;
+
+  @Column({ default: false })
+  verificado!: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  verificacionToken!: string | null;
+
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  verificacionExpirada!: Date | null;
 
   @OneToMany(() => RolUsuario, (usuarioRol) => usuarioRol.usuario)
-  roles: RolUsuario[];
+  roles!: RolUsuario[];
 
   @OneToMany(() => Pedido, (pedido) => pedido.cliente)
-  pedidos: Pedido[];
+  pedidos!: Pedido[];
 
   @BeforeInsert()
   @BeforeUpdate()
