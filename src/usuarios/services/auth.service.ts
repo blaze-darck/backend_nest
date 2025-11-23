@@ -13,7 +13,13 @@ export class AuthService {
 
   async validateUser(correo: string, contrasena: string): Promise<Usuario> {
     const usuarioRepo = this.dataSource.getRepository(Usuario);
-    const usuario = await usuarioRepo.findOne({ where: { correo } });
+
+    // Cargar roles correctamente
+    const usuario = await usuarioRepo.findOne({
+      where: { correo },
+      relations: ['roles', 'roles.rol'],
+    });
+
     if (!usuario) {
       throw new UnauthorizedException('Correo no encontrado');
     }
@@ -27,16 +33,21 @@ export class AuthService {
   }
 
   async login(user: any) {
-    // Convierte los roles a un array de strings
-    const roles = user.roles?.map((r) => r.nombre) || [];
+    const roles = user.roles?.map((r) => r.rol.nombre) || [];
+
+    const payload = {
+      id: user.id,
+      correo: user.correo,
+      roles,
+    };
 
     return {
-      token: this.jwtService.sign({ id: user.id, correo: user.correo, roles }),
+      token: this.jwtService.sign(payload),
       usuario: {
         id: user.id,
         correo: user.correo,
         nombre: user.nombre,
-        roles, // <- aquí incluimos los roles
+        roles,
       },
     };
   }
