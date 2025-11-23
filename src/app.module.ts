@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from '../ormconfig';
+import { ConfigModule } from '@nestjs/config';
 
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ProductosModule } from './productos/productos.module';
@@ -9,9 +10,14 @@ import { AuthModule } from './usuarios/auth.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
     TypeOrmModule.forRoot({
       ...AppDataSource.options,
     }),
+
     UsuariosModule,
     AuthModule,
     ProductosModule,
