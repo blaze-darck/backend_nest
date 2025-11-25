@@ -1,6 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CrearCategoriaProductoDto } from './crearCategoria.dto';
+import { CreateCategoriaProductoDto } from '../dto/crearCategoria.dto';
 
-export class ActualizarCategoriaProductoDto extends PartialType(
-  CrearCategoriaProductoDto,
-) {}
+export class UpdateCategoriaProductoDto extends PartialType(CreateCategoriaProductoDto) {}

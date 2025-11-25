@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ProductosService } from './productoService/productos.service';
+import { ProductoService } from '../productos/productoService/productos.service';
 import { ProductoController } from './productoControllers/productos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Producto } from './productosEntities/producto.entity';
 import { CategoriaProducto } from './productosEntities/categoriaProducto.entity';
 import { ProductoRepository } from './productoRepositories/producto.repository';
-import { categoriaProductoRepository } from './productoRepositories/categoriaProducto.repository';
+import { CategoriaProductoRepository } from '../productos/productoRepositories/categoriaProducto.repository';
 import { CategoriaProductoService } from './productoService/categoriaProducto.service';
 import { CategoriaProductoController } from './productoControllers/categoriaProductos.controller';
 
@@ -13,15 +13,15 @@ import { CategoriaProductoController } from './productoControllers/categoriaProd
   imports: [TypeOrmModule.forFeature([Producto, CategoriaProducto])],
   controllers: [ProductoController, CategoriaProductoController],
   providers: [
-    ProductosService,
+    ProductoService,
     CategoriaProductoService,
     ProductoRepository,
-    categoriaProductoRepository,
+    CategoriaProductoRepository,
   ],
   exports: [
     ProductoRepository,
-    categoriaProductoRepository,
-    ProductosService,
+    CategoriaProductoRepository,
+    ProductoService,
     CategoriaProductoService,
   ],
 })

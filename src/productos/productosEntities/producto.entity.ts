@@ -1,6 +1,6 @@
 import { Auditoria } from 'src/comun/entities/auditoria.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { CategoriaProducto } from './categoriaProducto.entity';
+import { SubcategoriaProducto } from './subcategoriaProductos.entity';
 
 @Entity()
 export class Producto extends Auditoria {
@@ -19,9 +19,9 @@ export class Producto extends Auditoria {
   @Column({ type: 'varchar', length: 255, nullable: true })
   imagen: string | null;
 
-  @ManyToOne(() => CategoriaProducto, (categoria) => categoria.productos, {
+  @ManyToOne(() => SubcategoriaProducto, (subcat) => subcat.productos, {
     eager: true,
     nullable: false,
   })
-  categoria: CategoriaProducto;
+  subcategoria: SubcategoriaProducto;
 }

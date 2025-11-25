@@ -1,17 +1,17 @@
 import { DataSource } from 'typeorm';
 import { Producto } from '../../productos/productosEntities/producto.entity';
-import { CategoriaProducto } from '../../productos/productosEntities/categoriaProducto.entity';
+import { SubcategoriaProducto } from '../../productos/productosEntities/subcategoriaProductos.entity';
 
 export async function productoSeed(dataSource: DataSource) {
   const productoRepo = dataSource.getRepository(Producto);
-  const categoriaRepo = dataSource.getRepository(CategoriaProducto);
+  const subcategoriaRepo = dataSource.getRepository(SubcategoriaProducto);
 
-  // Traer subcategorías necesarias
-  const sopa = await categoriaRepo.findOne({ where: { nombre: 'Sopa' } });
-  const cafeSub = await categoriaRepo.findOne({ where: { nombre: 'Cafe' } });
+  // Buscar subcategorías necesarias
+  const sopa = await subcategoriaRepo.findOne({ where: { nombre: 'Sopa' } });
+  const cafeSub = await subcategoriaRepo.findOne({ where: { nombre: 'Cafe' } });
 
   if (!sopa || !cafeSub) {
-    console.log('❌ Las subcategorías necesarias no están creadas.');
+    console.log(' Las subcategorías necesarias no están creadas.');
     return;
   }
 
@@ -21,7 +21,7 @@ export async function productoSeed(dataSource: DataSource) {
       descripcion: 'Deliciosa sopa tradicional con arroz y verduras',
       precio: 10,
       disponibilidad: 10,
-      categoria: sopa,
+      subcategoria: sopa,
       activo: true,
       imagen: '/uploads/productos/sopaArroz.jfif',
     },
@@ -30,7 +30,7 @@ export async function productoSeed(dataSource: DataSource) {
       descripcion: 'Sonido HD con cancelación de ruido',
       precio: 199.99,
       disponibilidad: 15,
-      categoria: cafeSub,
+      subcategoria: cafeSub,
       activo: true,
       imagen: '/productos/audifonos-sony.jpg',
     },
@@ -39,7 +39,7 @@ export async function productoSeed(dataSource: DataSource) {
       descripcion: 'Set de cocina completo de 5 piezas',
       precio: 89.99,
       disponibilidad: 15,
-      categoria: sopa.parent, // ejemplo: categoría principal "Menu"
+      subcategoria: sopa, 
       activo: true,
       imagen: '/productos/sartenes.jpg',
     },
@@ -49,10 +49,12 @@ export async function productoSeed(dataSource: DataSource) {
     const existe = await productoRepo.findOne({
       where: { nombre: prod.nombre },
     });
+
     if (!existe) {
       await productoRepo.save(productoRepo.create(prod));
     }
   }
 
-  console.log('✔ Productos creados correctamente con subcategorías');
+  console.log('✔ Productos creados correctamente');
 }
+

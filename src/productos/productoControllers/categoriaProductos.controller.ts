@@ -1,56 +1,32 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Put,
-  Delete,
-  Param,
-  Body,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
 import { CategoriaProductoService } from '../productoService/categoriaProducto.service';
-import { CrearCategoriaProductoDto } from '../dto/crearCategoria.dto';
-import { ActualizarCategoriaProductoDto } from '../dto/actualizarCategoria.dto';
-import { PatchCategoriaProductoDto } from '../dto/patchCategoria.dto';
 
-@Controller('categorias-productos')
+@Controller('categorias')
 export class CategoriaProductoController {
-  constructor(private readonly categoriaService: CategoriaProductoService) {}
+  constructor(private readonly service: CategoriaProductoService) {}
 
   @Get()
   findAll() {
-    return this.categoriaService.findAll();
+    return this.service.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.categoriaService.findOne(id);
+  findById(@Param('id') id: number) {
+    return this.service.findById(id);
   }
 
   @Post()
-  create(@Body() data: CrearCategoriaProductoDto) {
-    return this.categoriaService.createCategoria(data);
-  }
-
-  @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: ActualizarCategoriaProductoDto,
-  ) {
-    return this.categoriaService.updateCategoria(id, data);
+  create(@Body() data: any) {
+    return this.service.create(data);
   }
 
   @Patch(':id')
-  partialUpdate(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: PatchCategoriaProductoDto,
-  ) {
-    return this.categoriaService.partialUpdateCategoria(id, data);
+  update(@Param('id') id: number, @Body() data: any) {
+    return this.service.update(id, data);
   }
 
   @Delete(':id')
-  desactivar(@Param('id', ParseIntPipe) id: number) {
-    return this.categoriaService.desactivarCategoria(id);
+  softDelete(@Param('id') id: number) {
+    return this.service.softDelete(id);
   }
 }

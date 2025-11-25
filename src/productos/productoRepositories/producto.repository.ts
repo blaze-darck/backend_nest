@@ -1,14 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Producto } from '../productosEntities/producto.entity';
 
 @Injectable()
-export class ProductoRepository extends Repository<Producto> {
-  constructor(private dataSource: DataSource) {
-    super(Producto, dataSource.createEntityManager());
+export class ProductoRepository {
+  constructor(
+    @InjectRepository(Producto)
+    private readonly repo: Repository<Producto>,
+  ) {}
+
+  findAll() {
+    return this.repo.find({ relations: ['subcategoria', 'subcategoria.categoria'] });
   }
 
-  async findByNombre(nombre: string) {
-    return this.findOne({ where: { nombre } });
+  findById(id: number) {
+    return this.repo.findOne({
+      where: { id },
+      relations: ['subcategoria', 'subcategoria.categoria'],
+    });
+  }
+
+  create(data: Partial<Producto>) {
+    const producto = this.repo.create(data);
+    return this.repo.save(producto);
+  }
+
+  update(id: number, data: Partial<Producto>) {
+    return this.repo.update(id, data);
+  }
+
+  async softDelete(id: number) {
+    return this.repo.update(id, { activo: false });
   }
 }

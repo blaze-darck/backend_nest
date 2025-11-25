@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
-import { ProductoService } from '../productoService/productos.service';
+import { SubcategoriaProductoService } from '../productoService/subcategoriaProductos.service';
 
-@Controller('productos')
-export class ProductoController {
-  constructor(private readonly service: ProductoService) {}
+@Controller('subcategorias')
+export class SubcategoriaProductoController {
+  constructor(private readonly service: SubcategoriaProductoService) {}
 
   @Get()
   findAll() {

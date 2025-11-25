@@ -1,8 +1,9 @@
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
-export class CrearCategoriaProductoDto {
+export class CreateCategoriaProductoDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   nombre: string;
 
   @IsString()

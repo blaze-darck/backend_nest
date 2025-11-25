@@ -3,8 +3,9 @@ import { seedUsuarios } from './seedUsuarios/seedUsuario';
 import { seedRoles } from './seedUsuarios/seedRol';
 import { seedRolUsuario } from './seedUsuarios/seedRolUsuario';
 
-import { categoriaProductoSeed } from './seedProductos/seedCategorias';
+import { categoriaSeed } from './seedProductos/seedCategorias';
 import { productoSeed } from './seedProductos/seedProductos';
+import { subcategoriaSeed } from './seedProductos/seedSubCategoria'
 export async function runSeeds(dataSource: DataSource) {
   console.log('Ejecutando seeds...');
 
@@ -12,7 +13,9 @@ export async function runSeeds(dataSource: DataSource) {
   await seedUsuarios(dataSource);
   await seedRolUsuario(dataSource);
 
-  await categoriaProductoSeed(dataSource);
+  await categoriaSeed(dataSource);
+  
+  await subcategoriaSeed(dataSource);
   await productoSeed(dataSource);
   console.log('Todas las seeds ejecutadas!');
 }

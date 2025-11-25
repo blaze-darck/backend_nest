@@ -1,13 +1,17 @@
 import {
   IsNotEmpty,
-  IsString,
   IsOptional,
+  IsString,
+  MaxLength,
   IsNumber,
+  IsInt,
   IsPositive,
+  IsUrl,
 } from 'class-validator';
 
-export class CrearProductoDto {
+export class CreateProductoDto {
   @IsString()
+  @MaxLength(150)
   @IsNotEmpty()
   nombre: string;
 
@@ -15,15 +19,23 @@ export class CrearProductoDto {
   @IsOptional()
   descripcion?: string;
 
-  @IsNumber()
+  @IsNumber(
+    { allowInfinity: false, allowNaN: false },
+    { message: 'El precio debe ser numérico' },
+  )
   @IsPositive()
   precio: number;
 
+  @IsInt()
   @IsOptional()
-  @IsNumber()
   disponibilidad?: number;
 
-  @IsNumber()
-  @IsPositive()
-  categoriaId: number;
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  imagen?: string | null;
+
+  @IsInt()
+  @IsNotEmpty()
+  subcategoria: number; // ID de la subcategoría
 }

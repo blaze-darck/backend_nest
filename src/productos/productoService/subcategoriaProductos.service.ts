@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CategoriaProductoRepository } from '../productoRepositories/categoriaProducto.repository';
+import { SubcategoriaProductoRepository } from '../productoRepositories/subcategoriasProductos.repository';
 
 @Injectable()
-export class CategoriaProductoService {
-  constructor(private readonly repo: CategoriaProductoRepository) {}
+export class SubcategoriaProductoService {
+  constructor(private readonly repo: SubcategoriaProductoRepository) {}
 
   findAll() {
     return this.repo.findAll();
   }
 
   async findById(id: number) {
-    const categoria = await this.repo.findById(id);
-    if (!categoria) throw new NotFoundException('Categoría no encontrada');
-    return categoria;
+    const subcat = await this.repo.findById(id);
+    if (!subcat) throw new NotFoundException('Subcategoría no encontrada');
+    return subcat;
   }
 
   create(data: any) {
