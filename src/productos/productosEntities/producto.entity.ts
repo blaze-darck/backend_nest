@@ -13,8 +13,11 @@ export class Producto extends Auditoria {
   @Column('decimal', { precision: 10, scale: 2 })
   precio: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  disponibilidad: string;
+  @Column({ type: 'int', nullable: true })
+  disponibilidad: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  imagen: string | null;
 
   @ManyToOne(() => CategoriaProducto, (categoria) => categoria.productos, {
     eager: true,

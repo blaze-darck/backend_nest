@@ -19,9 +19,9 @@ export class CrearProductoDto {
   @IsPositive()
   precio: number;
 
-  @IsString()
   @IsOptional()
-  disponibilidad?: string;
+  @IsNumber()
+  disponibilidad?: number;
 
   @IsNumber()
   @IsPositive()

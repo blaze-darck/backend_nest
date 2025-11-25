@@ -2,12 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { runSeeds } from '../src/database/controladorSeeds';
 import { DataSource } from 'typeorm';
+import { join, resolve } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(process.cwd(), 'uploads', 'productos'), {
+    prefix: '/uploads/productos/',
+  });
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5174', 'http://localhost:5173'],
     methods: 'GET,POST,PUT,PATCH,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
     credentials: true,
@@ -26,4 +32,5 @@ async function bootstrap() {
   await app.listen(3000);
   console.log('Servidor corriendo en http://localhost:3000');
 }
+
 bootstrap();

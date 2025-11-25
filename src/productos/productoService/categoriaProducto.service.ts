@@ -11,6 +11,7 @@ export class CategoriaProductoService {
   findAll() {
     return this.categoriaRepository.find({
       where: { activo: true },
+      relations: ['productos', 'subcategorias'], // Trae productos y subcategorías
     });
   }
 
