@@ -9,6 +9,11 @@ export class ProductoService {
     return this.repo.findAll();
   }
 
+  // 🆕 Solo productos activos (para menú público)
+  findAllActive() {
+    return this.repo.findAllActive();
+  }
+
   async findById(id: number) {
     const producto = await this.repo.findById(id);
     if (!producto) throw new NotFoundException('Producto no encontrado');
@@ -21,6 +26,12 @@ export class ProductoService {
 
   update(id: number, data: any) {
     return this.repo.update(id, data);
+  }
+
+  // 🆕 Cambiar estado activo/inactivo
+  async toggleEstado(id: number, activo: boolean) {
+    await this.findById(id); // Verificar que existe
+    return this.repo.update(id, { activo });
   }
 
   softDelete(id: number) {

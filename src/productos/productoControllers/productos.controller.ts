@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductoService } from '../productoService/productos.service';
 
 @Controller('productos')
@@ -10,19 +21,43 @@ export class ProductoController {
     return this.service.findAll();
   }
 
+  // 🆕 IMPORTANTE: Este debe ir ANTES de @Get(':id')
+  @Get('activos')
+  findAllActive() {
+    return this.service.findAllActive();
+  }
+
   @Get(':id')
   findById(@Param('id') id: number) {
     return this.service.findById(id);
   }
 
-  @Post()
-  create(@Body() data: any) {
-    return this.service.create(data);
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('imagen'))
+  create(@UploadedFile() file: Express.Multer.File, @Body() body) {
+    return this.service.create({
+      ...body,
+      imagen: file?.filename ?? null,
+    });
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() data: any) {
-    return this.service.update(id, data);
+  @UseInterceptors(FileInterceptor('imagen'))
+  update(
+    @Param('id') id: number,
+    @UploadedFile() imagen: Express.Multer.File,
+    @Body() data: any,
+  ) {
+    return this.service.update(id, {
+      ...data,
+      imagen: imagen ? imagen.filename : null,
+    });
+  }
+
+  // 🆕 Cambiar estado activo/inactivo
+  @Patch(':id/estado')
+  toggleEstado(@Param('id') id: number, @Body('activo') activo: boolean) {
+    return this.service.toggleEstado(id, activo);
   }
 
   @Delete(':id')

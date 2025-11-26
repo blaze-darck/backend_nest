@@ -11,7 +11,17 @@ export class ProductoRepository {
   ) {}
 
   findAll() {
-    return this.repo.find({ relations: ['subcategoria', 'subcategoria.categoria'] });
+    return this.repo.find({
+      relations: ['subcategoria', 'subcategoria.categoria'],
+    });
+  }
+
+  // 🆕 Solo productos activos
+  findAllActive() {
+    return this.repo.find({
+      where: { activo: true },
+      relations: ['subcategoria', 'subcategoria.categoria'],
+    });
   }
 
   findById(id: number) {
@@ -26,11 +36,13 @@ export class ProductoRepository {
     return this.repo.save(producto);
   }
 
-  update(id: number, data: Partial<Producto>) {
-    return this.repo.update(id, data);
+  async update(id: number, data: Partial<Producto>) {
+    await this.repo.update(id, data);
+    return this.findById(id); // 🔧 Devolver el producto actualizado
   }
 
   async softDelete(id: number) {
-    return this.repo.update(id, { activo: false });
+    await this.repo.update(id, { activo: false });
+    return { message: 'Producto desactivado', id };
   }
 }

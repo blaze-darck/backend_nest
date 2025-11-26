@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { SubcategoriaProductoService } from '../productoService/subcategoriaProductos.service';
 
 @Controller('subcategorias')
@@ -23,10 +31,5 @@ export class SubcategoriaProductoController {
   @Patch(':id')
   update(@Param('id') id: number, @Body() data: any) {
     return this.service.update(id, data);
-  }
-
-  @Delete(':id')
-  softDelete(@Param('id') id: number) {
-    return this.service.softDelete(id);
   }
 }
