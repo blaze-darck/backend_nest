@@ -1,31 +1,35 @@
-import { Entity, Column, ManyToOne, BeforeInsert, BeforeUpdate } from 'typeorm';
-import { Auditoria } from '../../comun/entities/auditoria.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Pedido } from './pedidos.entity';
 import { Producto } from '../../productos/productosEntities/producto.entity';
+import { Auditoria } from 'src/comun/entities/auditoria.entity';
 
-@Entity()
-export class DetallePedido extends Auditoria {
+@Entity('detalle_pedidos')
+export class DetallePedido {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @ManyToOne(() => Pedido, (pedido) => pedido.detalles, {
     onDelete: 'CASCADE',
-    nullable: false,
   })
+  @JoinColumn({ name: 'pedido_id' })
   pedido: Pedido;
 
-  @ManyToOne(() => Producto, { onDelete: 'CASCADE', nullable: false })
+  @ManyToOne(() => Producto, { eager: true })
+  @JoinColumn({ name: 'producto_id' })
   producto: Producto;
 
   @Column({ type: 'int' })
   cantidad: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  precio_unit: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'precio_unitario' })
+  precioUnitario: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   subtotal: number;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  calcularSubtotal() {
-    this.subtotal = Number(this.cantidad) * Number(this.precio_unit);
-  }
 }
