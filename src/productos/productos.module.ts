@@ -1,22 +1,35 @@
 import { Module } from '@nestjs/common';
-import { ProductoService } from '../productos/productoService/productos.service';
-import { ProductoController } from './productoControllers/productos.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { Producto } from './productosEntities/producto.entity';
 import { CategoriaProducto } from './productosEntities/categoriaProducto.entity';
-import { ProductoRepository } from './productoRepositories/producto.repository';
-import { CategoriaProductoRepository } from '../productos/productoRepositories/categoriaProducto.repository';
-import { CategoriaProductoService } from './productoService/categoriaProducto.service';
+import { SubcategoriaProducto } from './productosEntities/subcategoriaProductos.entity';
+
+import { ProductoController } from './productoControllers/productos.controller';
 import { CategoriaProductoController } from './productoControllers/categoriaProductos.controller';
+import { SubcategoriaProductoController } from './productoControllers/subcategoriaProductos.controller';
+
+import { ProductoService } from './productoService/productos.service';
+import { CategoriaProductoService } from './productoService/categoriaProducto.service';
+import { SubcategoriaProductoService } from './productoService/subcategoriaProductos.service';
+
+import { ProductoRepository } from './productoRepositories/producto.repository';
+import { CategoriaProductoRepository } from './productoRepositories/categoriaProducto.repository';
+import { SubcategoriaProductoRepository } from './productoRepositories/subcategoriasProductos.repository';
+
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Producto, CategoriaProducto]),
+    TypeOrmModule.forFeature([
+      Producto,
+      CategoriaProducto,
+      SubcategoriaProducto,
+    ]),
 
-    // 👇 REGISTRAR MULTER PARA SUBIR IMÁGENES
+    // Multer
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads/productos',
@@ -27,23 +40,32 @@ import { extname } from 'path';
           callback(null, filename);
         },
       }),
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5 MB
-      },
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   ],
-  controllers: [ProductoController, CategoriaProductoController],
+
+  controllers: [
+    ProductoController,
+    CategoriaProductoController,
+    SubcategoriaProductoController,
+  ],
+
   providers: [
     ProductoService,
     CategoriaProductoService,
+    SubcategoriaProductoService,
     ProductoRepository,
     CategoriaProductoRepository,
+    SubcategoriaProductoRepository,
   ],
+
   exports: [
     ProductoRepository,
     CategoriaProductoRepository,
+    SubcategoriaProductoRepository,
     ProductoService,
     CategoriaProductoService,
+    SubcategoriaProductoService,
   ],
 })
 export class ProductosModule {}
