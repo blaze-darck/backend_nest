@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MetodoPago, TipoEntrega } from '../pedidosEntities/pedidos.entity'; // ✅ Agregar TipoEntrega aquí
+import { MetodoPago, TipoEntrega } from '../pedidosEntities/pedidos.entity';
 
 export class CrearDetallePedidoDto {
   @IsNumber()

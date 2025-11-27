@@ -106,7 +106,6 @@ export class PedidosController {
     };
   }
 
-  // ✅ CAMBIO: Ahora retorna el pedido cancelado en lugar de solo un mensaje
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminar(@Param('id', ParseIntPipe) id: number) {
