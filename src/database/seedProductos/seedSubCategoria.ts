@@ -10,7 +10,7 @@ export async function subcategoriaSeed(dataSource: DataSource) {
   const cafe = await categoriaRepo.findOne({ where: { nombre: 'Cafe' } });
 
   if (!menu || !cafe) {
-    console.log('❌ Las categorías principales no están creadas.');
+    console.log('Las categorías principales no están creadas.');
     return;
   }
 
@@ -41,5 +41,5 @@ export async function subcategoriaSeed(dataSource: DataSource) {
     }
   }
 
-  console.log('✔ Subcategorías creadas correctamente');
+  console.log('Subcategorías creadas correctamente');
 }

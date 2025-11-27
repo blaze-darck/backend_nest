@@ -8,6 +8,8 @@ export async function seedRoles(dataSource: DataSource) {
     { nombre: 'Administrador', descripcion: 'Administrador del sistema' },
     { nombre: 'Usuario', descripcion: 'Usuario normal' },
     { nombre: 'Cocinero', descripcion: 'Encargado de la cocina' },
+    { nombre: 'Mesero', descripcion: 'Encargado de los pedidos'},
+    { nombre: 'Cajero', descripcion: 'Encargado de las compras'}
   ];
 
   for (const rolData of roles) {
