@@ -9,39 +9,40 @@ export async function productoSeed(dataSource: DataSource) {
   // Buscar subcategorías necesarias
   const sopa = await subcategoriaRepo.findOne({ where: { nombre: 'Sopa' } });
   const cafeSub = await subcategoriaRepo.findOne({ where: { nombre: 'Cafe' } });
+  const segundo = await subcategoriaRepo.findOne({where:{ nombre: 'Segundo'}})
 
-  if (!sopa || !cafeSub) {
-    console.log(' Las subcategorías necesarias no están creadas.');
-    return;
-  }
+  if (!sopa || !segundo || !cafeSub) {
+  console.log('Las subcategorías necesarias no están creadas.');
+  return;
+}
 
   const productos = [
     {
       nombre: 'Sopa de Arroz',
       descripcion: 'Deliciosa sopa tradicional con arroz y verduras',
       precio: 10,
-      disponibilidad: 10,
+      disponibilidad: 50,
       subcategoria: sopa,
       activo: true,
       imagen: '/uploads/productos/sopaArroz.jfif',
     },
     {
-      nombre: 'Audífonos Bluetooth Sony',
-      descripcion: 'Sonido HD con cancelación de ruido',
-      precio: 199.99,
-      disponibilidad: 15,
-      subcategoria: cafeSub,
+      nombre: 'Milanesa de carne',
+      descripcion: 'Milanesa echa con amor acompañado de arroz o fideo con una rica ensalada',
+      precio: 15,
+      disponibilidad: 50,
+      subcategoria: segundo,
       activo: true,
-      imagen: '/productos/audifonos-sony.jpg',
+      imagen: '/uploads/productos/milanesa.jfif',
     },
     {
-      nombre: 'Juego de Sartenes Antiadherentes',
-      descripcion: 'Set de cocina completo de 5 piezas',
-      precio: 89.99,
-      disponibilidad: 15,
-      subcategoria: sopa, 
+      nombre: 'Cafe con leche',
+      descripcion: 'El mas exclusivo cafe con leche de toda la ciudad',
+      precio:12,
+      disponibilidad: 30,
+      subcategoria: cafeSub, 
       activo: true,
-      imagen: '/productos/sartenes.jpg',
+      imagen: '/uploads/productos/cafe_leche.jfif',
     },
   ];
 
