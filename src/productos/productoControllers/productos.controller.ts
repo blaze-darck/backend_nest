@@ -21,7 +21,7 @@ export class ProductoController {
     return this.service.findAll();
   }
 
-  // 🆕 IMPORTANTE: Este debe ir ANTES de @Get(':id')
+
   @Get('activos')
   findAllActive() {
     return this.service.findAllActive();
@@ -53,8 +53,6 @@ export class ProductoController {
       imagen: imagen ? imagen.filename : null,
     });
   }
-
-  // 🆕 Cambiar estado activo/inactivo
   @Patch(':id/estado')
   toggleEstado(@Param('id') id: number, @Body('activo') activo: boolean) {
     return this.service.toggleEstado(id, activo);
