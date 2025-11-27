@@ -13,9 +13,12 @@ import { DetallePedido } from './detallePedido.entity';
 import { Auditoria } from 'src/comun/entities/auditoria.entity';
 
 export enum EstadoPedido {
-  PREPARACION = 'PREPARACION',
-  COMPLETADO = 'COMPLETADO',
-  CANCELADO = 'CANCELADO',
+  PENDIENTE = 'PENDIENTE', // Cliente creó el pedido
+  ACEPTADO = 'ACEPTADO', // Admin aceptó
+  EN_PREPARACION = 'EN_PREPARACION', // Cocinero lo está haciendo
+  LISTO = 'LISTO', // Cocinero terminó
+  COMPLETADO = 'COMPLETADO', // Cajero cobró
+  CANCELADO = 'CANCELADO', // Admin rechazó
 }
 
 export enum MetodoPago {
@@ -31,17 +34,21 @@ export class Pedido {
   @Column({ unique: true, name: 'numero_pedido' })
   numeroPedido: string;
 
-  @ManyToOne(() => Usuario, { eager: true })
+  @ManyToOne(() => Usuario, (usuario) => usuario.pedidos, { eager: true })
   @JoinColumn({ name: 'usuario_id' })
-  usuario: Usuario;
+  cliente: Usuario;
 
-  @Column({ type: 'timestamp', name: 'fecha_pedido', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    type: 'timestamp',
+    name: 'fecha_pedido',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   fechaPedido: Date;
 
   @Column({
     type: 'enum',
     enum: EstadoPedido,
-    default: EstadoPedido.PREPARACION,
+    default: EstadoPedido.PENDIENTE,
   })
   estado: EstadoPedido;
 
@@ -59,12 +66,11 @@ export class Pedido {
   metodoPago: MetodoPago;
 
   @Column({ type: 'text', nullable: true })
-  notas: string;
+  notas: string | null;
 
   @OneToMany(() => DetallePedido, (detalle) => detalle.pedido, {
     cascade: true,
     eager: true,
   })
   detalles: DetallePedido[];
-
 }

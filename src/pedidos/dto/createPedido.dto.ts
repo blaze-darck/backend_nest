@@ -1,40 +1,37 @@
 import {
-  IsArray,
   IsEnum,
-  IsNotEmpty,
-  IsOptional,
   IsString,
+  IsOptional,
+  IsArray,
   ValidateNested,
-  ArrayMinSize,
-  IsInt,
+  IsNumber,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { MetodoPago } from '../pedidosEntities/pedidos.entity';
 
-export class ItemPedidoDto {
-  @IsInt({ message: 'El productoId debe ser un número entero' })
-  @IsNotEmpty({ message: 'El productoId es requerido' })
+export class CrearDetallePedidoDto {
+  @IsNumber()
   productoId: number;
 
-  @IsInt({ message: 'La cantidad debe ser un número entero' })
-  @Min(1, { message: 'La cantidad debe ser al menos 1' })
-  @IsNotEmpty({ message: 'La cantidad es requerida' })
+  @IsNumber()
+  @Min(1)
   cantidad: number;
 }
 
-export class CreatePedidoDto {
-  @IsArray({ message: 'Los items deben ser un array' })
-  @ArrayMinSize(1, { message: 'Debe haber al menos un producto en el pedido' })
-  @ValidateNested({ each: true })
-  @Type(() => ItemPedidoDto)
-  items: ItemPedidoDto[];
+export class CrearPedidoDto {
+  @IsNumber()
+  usuarioId: number;
 
-  @IsEnum(MetodoPago, { message: 'Método de pago inválido' })
-  @IsNotEmpty({ message: 'El método de pago es requerido' })
+  @IsEnum(MetodoPago)
   metodoPago: MetodoPago;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   notas?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CrearDetallePedidoDto)
+  detalles: CrearDetallePedidoDto[];
 }
