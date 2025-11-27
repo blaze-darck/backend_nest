@@ -38,7 +38,7 @@ export class PedidosRepository extends Repository<Pedido> {
     }
 
     const [pedidos, total] = await query
-      .orderBy('pedido.fecha_pedido', 'DESC')
+      .orderBy('pedido.id', 'DESC') // ✅ CAMBIO: usar 'id' en lugar de 'fecha_pedido'
       .skip((pagina - 1) * limite)
       .take(limite)
       .getManyAndCount();
@@ -60,9 +60,9 @@ export class PedidosRepository extends Repository<Pedido> {
   }
 
   async obtenerUltimoPedido(): Promise<Pedido | null> {
-    return this.findOne({
-      order: { id: 'DESC' },
-    });
+    return this.createQueryBuilder('pedido')
+      .orderBy('pedido.id', 'DESC')
+      .getOne();
   }
 
   async contarPorEstado(estado: EstadoPedido): Promise<number> {
@@ -82,7 +82,7 @@ export class PedidosRepository extends Repository<Pedido> {
     return this.find({
       where: { cliente: { id: usuarioId } },
       relations: ['detalles', 'detalles.producto'],
-      order: { fechaPedido: 'DESC' },
+      order: { id: 'DESC' }, // ✅ CAMBIO: usar 'id' para consistencia
     });
   }
 }

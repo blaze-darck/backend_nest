@@ -8,7 +8,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MetodoPago } from '../pedidosEntities/pedidos.entity';
+import { MetodoPago, TipoEntrega } from '../pedidosEntities/pedidos.entity'; // ✅ Agregar TipoEntrega aquí
 
 export class CrearDetallePedidoDto {
   @IsNumber()
@@ -25,6 +25,9 @@ export class CrearPedidoDto {
 
   @IsEnum(MetodoPago)
   metodoPago: MetodoPago;
+
+  @IsEnum(TipoEntrega)
+  tipoEntrega: TipoEntrega;
 
   @IsOptional()
   @IsString()

@@ -4,26 +4,28 @@ import {
   Column,
   ManyToOne,
   OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { DetallePedido } from './detallePedido.entity';
-import { Auditoria } from 'src/comun/entities/auditoria.entity';
 
 export enum EstadoPedido {
-  PENDIENTE = 'PENDIENTE', // Cliente creó el pedido
-  ACEPTADO = 'ACEPTADO', // Admin aceptó
-  EN_PREPARACION = 'EN_PREPARACION', // Cocinero lo está haciendo
-  LISTO = 'LISTO', // Cocinero terminó
-  COMPLETADO = 'COMPLETADO', // Cajero cobró
-  CANCELADO = 'CANCELADO', // Admin rechazó
+  PENDIENTE = 'PENDIENTE',
+  ACEPTADO = 'ACEPTADO',
+  EN_PREPARACION = 'EN_PREPARACION',
+  LISTO = 'LISTO',
+  COMPLETADO = 'COMPLETADO',
+  CANCELADO = 'CANCELADO',
 }
 
 export enum MetodoPago {
   QR = 'QR',
   EFECTIVO = 'EFECTIVO',
+}
+
+export enum TipoEntrega {
+  LLEVAR = 'LLEVAR',
+  PARA_AQUI = 'PARA_AQUI',
 }
 
 @Entity('pedidos')
@@ -57,6 +59,13 @@ export class Pedido {
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total: number;
+
+  @Column({
+    type: 'enum',
+    enum: TipoEntrega,
+    name: 'tipo_entrega',
+  })
+  tipoEntrega: TipoEntrega;
 
   @Column({
     type: 'enum',

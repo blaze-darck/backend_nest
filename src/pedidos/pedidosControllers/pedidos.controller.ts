@@ -21,10 +21,6 @@ import { EstadoPedido } from '../pedidosEntities/pedidos.entity';
 export class PedidosController {
   constructor(private readonly pedidosService: PedidosService) {}
 
-  /**
-   * POST /pedidos
-   * Crear un nuevo pedido
-   */
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async crear(@Body() dto: CrearPedidoDto) {
@@ -35,10 +31,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * GET /pedidos
-   * Listar pedidos con filtros opcionales
-   */
   @Get()
   async buscarTodos(
     @Query('estado') estado?: EstadoPedido,
@@ -64,10 +56,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * GET /pedidos/estadisticas
-   * Obtener estadísticas generales de pedidos
-   */
   @Get('estadisticas')
   async obtenerEstadisticas() {
     const estadisticas = await this.pedidosService.obtenerEstadisticas();
@@ -77,10 +65,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * GET /pedidos/usuario/:usuarioId
-   * Obtener todos los pedidos de un usuario específico
-   */
   @Get('usuario/:usuarioId')
   async buscarPorUsuario(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
     const pedidos = await this.pedidosService.buscarPorUsuario(usuarioId);
@@ -91,10 +75,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * GET /pedidos/numero/:numeroPedido
-   * Buscar un pedido por su número único
-   */
   @Get('numero/:numeroPedido')
   async buscarPorNumeroPedido(@Param('numeroPedido') numeroPedido: string) {
     const pedido =
@@ -105,10 +85,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * GET /pedidos/:id
-   * Buscar un pedido por su ID
-   */
   @Get(':id')
   async buscarPorId(@Param('id', ParseIntPipe) id: number) {
     const pedido = await this.pedidosService.buscarPorId(id);
@@ -118,10 +94,6 @@ export class PedidosController {
     };
   }
 
-  /**
-   * PATCH /pedidos/:id
-   * Actualizar un pedido (estado y/o notas)
-   */
   @Patch(':id')
   async actualizar(
     @Param('id', ParseIntPipe) id: number,
@@ -134,16 +106,14 @@ export class PedidosController {
     };
   }
 
-  /**
-   * DELETE /pedidos/:id
-   * Eliminar un pedido (solo si no está completado)
-   */
+  // ✅ CAMBIO: Ahora retorna el pedido cancelado en lugar de solo un mensaje
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async eliminar(@Param('id', ParseIntPipe) id: number) {
-    await this.pedidosService.eliminar(id);
+    const pedido = await this.pedidosService.eliminar(id);
     return {
-      mensaje: 'Pedido eliminado exitosamente',
+      mensaje: 'Pedido cancelado exitosamente',
+      datos: pedido,
     };
   }
 }

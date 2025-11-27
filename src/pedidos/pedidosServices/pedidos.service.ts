@@ -28,12 +28,17 @@ export class PedidosService {
     private readonly dataSource: DataSource,
   ) {}
 
+  // src/pedidos/pedidosServices/pedidos.service.ts
   async crear(dto: CrearPedidoDto): Promise<Pedido> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+      console.log('=== INICIO CREACIÓN PEDIDO ===');
+      console.log('DTO recibido:', JSON.stringify(dto, null, 2));
+
+      console.log('1. Buscando usuario ID:', dto.usuarioId);
       const usuario = await this.usuariosRepository.findOne({
         where: { id: dto.usuarioId },
       });
@@ -43,15 +48,14 @@ export class PedidosService {
           `Usuario con ID ${dto.usuarioId} no encontrado`,
         );
       }
-
-      // ❌ ELIMINA ESTAS LÍNEAS 46-47 (están duplicadas)
-      // const pedido = new Pedido();
-      // pedido.usuario = usuario;
+      console.log('✓ Usuario encontrado:', usuario.id, usuario.nombre);
 
       let subtotal = 0;
       const detalles: DetallePedido[] = [];
 
+      console.log('2. Procesando', dto.detalles.length, 'detalles');
       for (const detalleDto of dto.detalles) {
+        console.log('  - Buscando producto ID:', detalleDto.productoId);
         const producto = await this.productosRepository.findOne({
           where: { id: detalleDto.productoId },
         });
@@ -61,6 +65,13 @@ export class PedidosService {
             `Producto con ID ${detalleDto.productoId} no encontrado`,
           );
         }
+        console.log(
+          '  ✓ Producto encontrado:',
+          producto.id,
+          producto.nombre,
+          'Precio:',
+          producto.precio,
+        );
 
         const detalle = new DetallePedido();
         detalle.producto = producto;
@@ -68,30 +79,65 @@ export class PedidosService {
         detalle.precioUnitario = Number(producto.precio);
         detalle.subtotal = Number(producto.precio) * detalleDto.cantidad;
 
+        console.log(
+          '  ✓ Detalle creado - Cantidad:',
+          detalle.cantidad,
+          'Subtotal:',
+          detalle.subtotal,
+        );
+
         subtotal += detalle.subtotal;
         detalles.push(detalle);
       }
+      console.log('✓ Subtotal total:', subtotal);
 
-      // ✅ AGREGA ESTA LÍNEA: genera el número de pedido
+      console.log('3. Generando número de pedido...');
       const numeroPedido = await this.generarNumeroPedido();
+      console.log('✓ Número generado:', numeroPedido);
 
-      // ✅ AHORA SÍ crea el pedido (línea 73)
+      console.log('4. Creando objeto Pedido...');
       const pedido = new Pedido();
       pedido.numeroPedido = numeroPedido;
-      pedido.cliente = usuario; // ✅ CAMBIO: 'usuario' → 'cliente'
+      pedido.cliente = usuario;
       pedido.metodoPago = dto.metodoPago;
+      pedido.tipoEntrega = dto.tipoEntrega;
       pedido.notas = dto.notas ?? null;
       pedido.estado = EstadoPedido.PENDIENTE;
       pedido.subtotal = subtotal;
       pedido.total = subtotal;
       pedido.detalles = detalles;
 
+      console.log('✓ Objeto pedido creado:', {
+        numeroPedido: pedido.numeroPedido,
+        clienteId: pedido.cliente.id,
+        metodoPago: pedido.metodoPago,
+        tipoEntrega: pedido.tipoEntrega,
+        estado: pedido.estado,
+        subtotal: pedido.subtotal,
+        total: pedido.total,
+        detallesCount: pedido.detalles.length,
+      });
+
+      console.log('5. Guardando en base de datos...');
       const pedidoGuardado = await queryRunner.manager.save(Pedido, pedido);
+      console.log('✓ Pedido guardado con ID:', pedidoGuardado.id);
 
+      console.log('6. Haciendo commit...');
       await queryRunner.commitTransaction();
+      console.log('✓ Commit exitoso');
 
-      return this.buscarPorId(pedidoGuardado.id);
+      console.log('7. Buscando pedido completo...');
+      const pedidoCompleto = await this.buscarPorId(pedidoGuardado.id);
+      console.log('✓ Pedido completo recuperado');
+      console.log('=== FIN CREACIÓN PEDIDO ===');
+
+      return pedidoCompleto;
     } catch (error) {
+      console.error('❌ ERROR EN CREACIÓN DE PEDIDO:');
+      console.error('Tipo de error:', error.constructor.name);
+      console.error('Mensaje:', error.message);
+      console.error('Stack:', error.stack);
+
       await queryRunner.rollbackTransaction();
 
       if (
@@ -128,7 +174,7 @@ export class PedidosService {
   async buscarPorId(id: number): Promise<Pedido> {
     const pedido = await this.pedidosRepository.findOne({
       where: { id },
-      relations: ['cliente', 'detalles', 'detalles.producto'], // ✅ CAMBIO: 'usuario' → 'cliente'
+      relations: ['cliente', 'detalles', 'detalles.producto'],
     });
 
     if (!pedido) {
@@ -153,6 +199,7 @@ export class PedidosService {
     return this.pedidosRepository.buscarPorUsuario(usuarioId);
   }
 
+  // src/pedidos/pedidosServices/pedidos.service.ts
   async actualizar(id: number, dto: ActualizarPedidoDto): Promise<Pedido> {
     const pedido = await this.buscarPorId(id);
 
@@ -177,16 +224,25 @@ export class PedidosService {
     return this.buscarPorId(id);
   }
 
-  async eliminar(id: number): Promise<void> {
+  // ✅ CAMBIO: Ahora es un soft delete (cambio de estado a CANCELADO)
+  async eliminar(id: number): Promise<Pedido> {
     const pedido = await this.buscarPorId(id);
 
     if (pedido.estado === EstadoPedido.COMPLETADO) {
       throw new BadRequestException(
-        'No se puede eliminar un pedido completado',
+        'No se puede cancelar un pedido completado',
       );
     }
 
-    await this.pedidosRepository.remove(pedido);
+    if (pedido.estado === EstadoPedido.CANCELADO) {
+      throw new BadRequestException('El pedido ya está cancelado');
+    }
+
+    // Cambiamos el estado a CANCELADO en lugar de eliminarlo
+    pedido.estado = EstadoPedido.CANCELADO;
+    await this.pedidosRepository.save(pedido);
+
+    return pedido;
   }
 
   async obtenerEstadisticas() {
