@@ -56,6 +56,65 @@ export class PedidosController {
     };
   }
 
+  // ============================================
+  // 🆕 RUTAS DE ESTADÍSTICAS ESPECÍFICAS
+  // ============================================
+
+  /**
+   * GET /pedidos/estadisticas/dia
+   * Obtiene las estadísticas del día actual
+   */
+  @Get('estadisticas/dia')
+  async obtenerEstadisticasDelDia() {
+    const estadisticas = await this.pedidosService.obtenerEstadisticasDelDia();
+    return {
+      mensaje: 'Estadísticas del día obtenidas exitosamente',
+      datos: estadisticas,
+    };
+  }
+
+  /**
+   * GET /pedidos/estadisticas/productos-mas-vendidos?limite=10
+   * Obtiene los productos más vendidos
+   */
+  @Get('estadisticas/productos-mas-vendidos')
+  async obtenerProductosMasVendidos(
+    @Query('limite', new ParseIntPipe({ optional: true })) limite: number = 10,
+  ) {
+    const productos =
+      await this.pedidosService.obtenerProductosMasVendidos(limite);
+    return {
+      mensaje: 'Productos más vendidos obtenidos exitosamente',
+      datos: productos,
+    };
+  }
+
+  /**
+   * GET /pedidos/estadisticas/reporte?fechaInicio=2024-01-01&fechaFin=2024-01-31
+   * Genera un reporte de un rango de fechas
+   */
+  @Get('estadisticas/reporte')
+  async obtenerReporte(
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+  ) {
+    // Si no se envían fechas, usar el mes actual
+    const fin = fechaFin ? new Date(fechaFin) : new Date();
+    const inicio = fechaInicio
+      ? new Date(fechaInicio)
+      : new Date(fin.getFullYear(), fin.getMonth(), 1);
+
+    const reporte = await this.pedidosService.obtenerReporte(inicio, fin);
+    return {
+      mensaje: 'Reporte generado exitosamente',
+      datos: reporte,
+    };
+  }
+
+  /**
+   * GET /pedidos/estadisticas
+   * Estadísticas generales (la ruta original)
+   */
   @Get('estadisticas')
   async obtenerEstadisticas() {
     const estadisticas = await this.pedidosService.obtenerEstadisticas();
@@ -64,6 +123,10 @@ export class PedidosController {
       datos: estadisticas,
     };
   }
+
+  // ============================================
+  // RUTAS EXISTENTES
+  // ============================================
 
   @Get('usuario/:usuarioId')
   async buscarPorUsuario(@Param('usuarioId', ParseIntPipe) usuarioId: number) {

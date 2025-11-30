@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, Between } from 'typeorm';
 import { PedidosRepository } from '../pedidosRepositories/pedido.repository';
 import { Pedido, EstadoPedido } from '../pedidosEntities/pedidos.entity';
 import { DetallePedido } from '../pedidosEntities/detallePedido.entity';
@@ -28,7 +28,6 @@ export class PedidosService {
     private readonly dataSource: DataSource,
   ) {}
 
-  // src/pedidos/pedidosServices/pedidos.service.ts
   async crear(dto: CrearPedidoDto): Promise<Pedido> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -56,7 +55,7 @@ export class PedidosService {
       console.log('2. Procesando', dto.detalles.length, 'detalles');
       for (const detalleDto of dto.detalles) {
         console.log('  - Buscando producto ID:', detalleDto.productoId);
-        const producto = await this.productosRepository.findOne({
+        const producto = await queryRunner.manager.findOne(Producto, {
           where: { id: detalleDto.productoId },
         });
 
@@ -71,6 +70,23 @@ export class PedidosService {
           producto.nombre,
           'Precio:',
           producto.precio,
+          'Stock actual:',
+          producto.disponibilidad,
+        );
+
+        // Validar stock disponible
+        if (producto.disponibilidad < detalleDto.cantidad) {
+          throw new BadRequestException(
+            `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.disponibilidad}, Solicitado: ${detalleDto.cantidad}`,
+          );
+        }
+
+        // Reducir stock del producto
+        producto.disponibilidad -= detalleDto.cantidad;
+        await queryRunner.manager.save(Producto, producto);
+        console.log(
+          '  ✓ Stock reducido. Nuevo stock:',
+          producto.disponibilidad,
         );
 
         const detalle = new DetallePedido();
@@ -199,7 +215,6 @@ export class PedidosService {
     return this.pedidosRepository.buscarPorUsuario(usuarioId);
   }
 
-  // src/pedidos/pedidosServices/pedidos.service.ts
   async actualizar(id: number, dto: ActualizarPedidoDto): Promise<Pedido> {
     const pedido = await this.buscarPorId(id);
 
@@ -224,25 +239,52 @@ export class PedidosService {
     return this.buscarPorId(id);
   }
 
-  // ✅ CAMBIO: Ahora es un soft delete (cambio de estado a CANCELADO)
   async eliminar(id: number): Promise<Pedido> {
-    const pedido = await this.buscarPorId(id);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (pedido.estado === EstadoPedido.COMPLETADO) {
-      throw new BadRequestException(
-        'No se puede cancelar un pedido completado',
-      );
+    try {
+      const pedido = await this.buscarPorId(id);
+
+      if (pedido.estado === EstadoPedido.COMPLETADO) {
+        throw new BadRequestException(
+          'No se puede cancelar un pedido completado',
+        );
+      }
+
+      if (pedido.estado === EstadoPedido.CANCELADO) {
+        throw new BadRequestException('El pedido ya está cancelado');
+      }
+
+      // Restaurar stock de todos los productos del pedido
+      console.log('Restaurando stock de productos...');
+      for (const detalle of pedido.detalles) {
+        const producto = await queryRunner.manager.findOne(Producto, {
+          where: { id: detalle.producto.id },
+        });
+
+        if (producto) {
+          producto.disponibilidad += detalle.cantidad;
+          await queryRunner.manager.save(Producto, producto);
+          console.log(
+            `✓ Stock restaurado: ${producto.nombre} +${detalle.cantidad} (Total: ${producto.disponibilidad})`,
+          );
+        }
+      }
+
+      pedido.estado = EstadoPedido.CANCELADO;
+      await queryRunner.manager.save(Pedido, pedido);
+
+      await queryRunner.commitTransaction();
+
+      return pedido;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    if (pedido.estado === EstadoPedido.CANCELADO) {
-      throw new BadRequestException('El pedido ya está cancelado');
-    }
-
-    // Cambiamos el estado a CANCELADO en lugar de eliminarlo
-    pedido.estado = EstadoPedido.CANCELADO;
-    await this.pedidosRepository.save(pedido);
-
-    return pedido;
   }
 
   async obtenerEstadisticas() {
@@ -264,6 +306,200 @@ export class PedidosService {
       completados,
       cancelados,
       totalVentas,
+    };
+  }
+
+  async obtenerEstadisticasDelDia() {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const manana = new Date(hoy);
+    manana.setDate(manana.getDate() + 1);
+
+    // Total de pedidos del día - CAMBIADO A ACEPTADO
+    const pedidosHoy = await this.pedidosRepository.count({
+      where: {
+        fechaCreacion: Between(hoy, manana),
+        estado: EstadoPedido.ACEPTADO, // ✅ CAMBIO AQUÍ
+      },
+    });
+
+    // Ganancia del día (solo pedidos aceptados) - CAMBIADO
+    const result = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('SUM(pedido.total)', 'total')
+      .where('pedido.fechaCreacion >= :hoy', { hoy })
+      .andWhere('pedido.fechaCreacion < :manana', { manana })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO AQUÍ
+      .getRawOne();
+
+    const gananciaDelDia = Number(result?.total || 0);
+
+    // Pedidos por método de pago - CAMBIADO
+    const porMetodoPago = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('pedido.metodoPago', 'metodo')
+      .addSelect('COUNT(*)', 'cantidad')
+      .addSelect('SUM(pedido.total)', 'total')
+      .where('pedido.fechaCreacion >= :hoy', { hoy })
+      .andWhere('pedido.fechaCreacion < :manana', { manana })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO AQUÍ
+      .groupBy('pedido.metodoPago')
+      .getRawMany();
+
+    // Pedidos por tipo de entrega - CAMBIADO
+    const porTipoEntrega = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('pedido.tipoEntrega', 'tipo')
+      .addSelect('COUNT(*)', 'cantidad')
+      .where('pedido.fechaCreacion >= :hoy', { hoy })
+      .andWhere('pedido.fechaCreacion < :manana', { manana })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO AQUÍ
+      .groupBy('pedido.tipoEntrega')
+      .getRawMany();
+
+    return {
+      fecha: hoy,
+      pedidosCompletados: pedidosHoy, // Nota: puedes renombrar esto a "pedidosAceptados" si quieres
+      gananciaTotal: gananciaDelDia,
+      porMetodoPago: porMetodoPago.map((mp) => ({
+        metodo: mp.metodo,
+        cantidad: Number(mp.cantidad),
+        total: Number(mp.total),
+      })),
+      porTipoEntrega: porTipoEntrega.map((te) => ({
+        tipo: te.tipo,
+        cantidad: Number(te.cantidad),
+      })),
+    };
+  }
+
+  /**
+   * Obtiene los productos más vendidos
+   */
+  async obtenerProductosMasVendidos(
+    limite: number = 10,
+    fechaInicio?: Date,
+    fechaFin?: Date,
+  ) {
+    let query = this.detallesRepository
+      .createQueryBuilder('detalle')
+      .innerJoin('detalle.pedido', 'pedido')
+      .innerJoin('detalle.producto', 'producto')
+      .select('producto.id', 'productoId')
+      .addSelect('producto.nombre', 'nombre')
+      .addSelect('producto.precio', 'precio')
+      .addSelect('SUM(detalle.cantidad)', 'cantidadVendida')
+      .addSelect('SUM(detalle.subtotal)', 'totalVentas')
+      .where('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }); // ✅ CAMBIO
+
+    if (fechaInicio && fechaFin) {
+      query = query
+        .andWhere('pedido.fechaCreacion >= :fechaInicio', { fechaInicio })
+        .andWhere('pedido.fechaCreacion <= :fechaFin', { fechaFin });
+    }
+
+    const resultados = await query
+      .groupBy('producto.id')
+      .addGroupBy('producto.nombre')
+      .addGroupBy('producto.precio')
+      .orderBy('cantidadVendida', 'DESC')
+      .limit(limite)
+      .getRawMany();
+
+    return resultados.map((r) => ({
+      productoId: r.productoId,
+      nombre: r.nombre,
+      precio: Number(r.precio),
+      cantidadVendida: Number(r.cantidadVendida),
+      totalVentas: Number(r.totalVentas),
+    }));
+  }
+  /**
+   * Obtiene las ventas agrupadas por día para un rango de fechas
+   */
+  async obtenerVentasPorDia(fechaInicio: Date, fechaFin: Date) {
+    const resultados = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('DATE(pedido.fechaCreacion)', 'fecha')
+      .addSelect('COUNT(*)', 'cantidadPedidos')
+      .addSelect('SUM(pedido.total)', 'totalVentas')
+      .where('pedido.fechaCreacion >= :fechaInicio', { fechaInicio })
+      .andWhere('pedido.fechaCreacion <= :fechaFin', { fechaFin })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO
+      .groupBy('DATE(pedido.fechaCreacion)')
+      .orderBy('fecha', 'ASC')
+      .getRawMany();
+
+    return resultados.map((r) => ({
+      fecha: r.fecha,
+      cantidadPedidos: Number(r.cantidadPedidos),
+      totalVentas: Number(r.totalVentas),
+    }));
+  }
+
+  /**
+   * Obtiene estadísticas de un rango de fechas
+   */
+  async obtenerReporte(fechaInicio: Date, fechaFin: Date) {
+    // Pedidos totales - CAMBIADO
+    const totalPedidos = await this.pedidosRepository.count({
+      where: {
+        fechaCreacion: Between(fechaInicio, fechaFin),
+        estado: EstadoPedido.ACEPTADO, // ✅ CAMBIO
+      },
+    });
+
+    // Ventas totales - CAMBIADO
+    const ventasTotales = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('SUM(pedido.total)', 'total')
+      .where('pedido.fechaCreacion >= :fechaInicio', { fechaInicio })
+      .andWhere('pedido.fechaCreacion <= :fechaFin', { fechaFin })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO
+      .getRawOne();
+
+    // Productos más vendidos
+    const productosMasVendidos = await this.obtenerProductosMasVendidos(
+      10,
+      fechaInicio,
+      fechaFin,
+    );
+
+    // Ventas por día
+    const ventasPorDia = await this.obtenerVentasPorDia(fechaInicio, fechaFin);
+
+    // Métodos de pago - CAMBIADO
+    const metodoPago = await this.pedidosRepository
+      .createQueryBuilder('pedido')
+      .select('pedido.metodoPago', 'metodo')
+      .addSelect('COUNT(*)', 'cantidad')
+      .addSelect('SUM(pedido.total)', 'total')
+      .where('pedido.fechaCreacion >= :fechaInicio', { fechaInicio })
+      .andWhere('pedido.fechaCreacion <= :fechaFin', { fechaFin })
+      .andWhere('pedido.estado = :estado', { estado: EstadoPedido.ACEPTADO }) // ✅ CAMBIO
+      .groupBy('pedido.metodoPago')
+      .getRawMany();
+
+    return {
+      periodo: {
+        inicio: fechaInicio,
+        fin: fechaFin,
+      },
+      resumen: {
+        totalPedidos,
+        ventasTotales: Number(ventasTotales?.total || 0),
+        ticketPromedio:
+          totalPedidos > 0
+            ? Number(ventasTotales?.total || 0) / totalPedidos
+            : 0,
+      },
+      productosMasVendidos,
+      ventasPorDia,
+      metodoPago: metodoPago.map((mp) => ({
+        metodo: mp.metodo,
+        cantidad: Number(mp.cantidad),
+        total: Number(mp.total),
+      })),
     };
   }
 

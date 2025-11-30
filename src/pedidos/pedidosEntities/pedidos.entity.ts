@@ -1,13 +1,7 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { DetallePedido } from './detallePedido.entity';
+import { Auditoria } from '../../comun/entities/auditoria.entity'; // Ajusta la ruta según tu proyecto
 
 export enum EstadoPedido {
   PENDIENTE = 'PENDIENTE',
@@ -29,23 +23,13 @@ export enum TipoEntrega {
 }
 
 @Entity('pedidos')
-export class Pedido {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Pedido extends Auditoria {
   @Column({ unique: true, name: 'numero_pedido' })
   numeroPedido: string;
 
   @ManyToOne(() => Usuario, (usuario) => usuario.pedidos, { eager: true })
   @JoinColumn({ name: 'usuario_id' })
   cliente: Usuario;
-
-  @Column({
-    type: 'timestamp',
-    name: 'fecha_pedido',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  fechaPedido: Date;
 
   @Column({
     type: 'enum',
