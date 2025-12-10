@@ -20,6 +20,7 @@ import { SubcategoriaProductoRepository } from './productoRepositories/subcatego
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { TraduccionesModule } from 'src/traducciones/traducciones.module';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { extname } from 'path';
       CategoriaProducto,
       SubcategoriaProducto,
     ]),
-
+    TraduccionesModule,
     // Multer
     MulterModule.register({
       storage: diskStorage({

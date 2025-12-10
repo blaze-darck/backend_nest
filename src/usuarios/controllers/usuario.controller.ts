@@ -98,4 +98,9 @@ export class UsuarioController {
   quitarRol(@Param('id') usuarioId: number, @Param('rolId') rolId: number) {
     return this.usuarioService.quitarRol(usuarioId, rolId);
   }
+
+  @Patch(':id/idioma')
+  actualizarIdioma(@Param('id') id: number, @Body('idioma') idioma: string) {
+    return this.usuarioService.actualizarIdioma(id, idioma);
+  }
 }

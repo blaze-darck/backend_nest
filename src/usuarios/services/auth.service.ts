@@ -14,7 +14,6 @@ export class AuthService {
   async validateUser(correo: string, contrasena: string): Promise<Usuario> {
     const usuarioRepo = this.dataSource.getRepository(Usuario);
 
-    // Cargar roles correctamente
     const usuario = await usuarioRepo.findOne({
       where: { correo },
       relations: ['roles', 'roles.rol'],
@@ -39,6 +38,7 @@ export class AuthService {
       id: user.id,
       correo: user.correo,
       roles,
+      idioma: user.idiomaPreferido || 'es', // ⭐ NUEVO
     };
 
     return {
@@ -48,6 +48,7 @@ export class AuthService {
         correo: user.correo,
         nombre: user.nombre,
         roles,
+        idiomaPreferido: user.idiomaPreferido || 'es', // ⭐ NUEVO
       },
     };
   }

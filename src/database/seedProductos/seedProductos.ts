@@ -9,17 +9,20 @@ export async function productoSeed(dataSource: DataSource) {
   // Buscar subcategorías necesarias
   const sopa = await subcategoriaRepo.findOne({ where: { nombre: 'Sopa' } });
   const cafeSub = await subcategoriaRepo.findOne({ where: { nombre: 'Cafe' } });
-  const segundo = await subcategoriaRepo.findOne({where:{ nombre: 'Segundo'}})
+  const segundo = await subcategoriaRepo.findOne({
+    where: { nombre: 'Segundo' },
+  });
 
   if (!sopa || !segundo || !cafeSub) {
-  console.log('Las subcategorías necesarias no están creadas.');
-  return;
-}
+    console.log('Las subcategorías necesarias no están creadas.');
+    return;
+  }
 
   const productos = [
     {
       nombre: 'Sopa de Arroz',
-      descripcion: 'Deliciosa sopa tradicional con arroz y verduras',
+      descripcion:
+        'Una sopa caliente y reconfortante elaborada con arroz suave, verduras aromáticas y un caldo lleno de sabor. Ideal como entrada ligera o como comida nutritiva.',
       precio: 10,
       disponibilidad: 50,
       subcategoria: sopa,
@@ -28,7 +31,8 @@ export async function productoSeed(dataSource: DataSource) {
     },
     {
       nombre: 'Milanesa de carne',
-      descripcion: 'Milanesa echa con amor acompañado de arroz o fideo con una rica ensalada',
+      descripcion:
+        'Crujiente filete de carne empanizado, sazonado y frito hasta quedar dorado y perfecto. Acompañado de papas fritas, ensalada o arroz para una comida deliciosa y satisfactoria.',
       precio: 15,
       disponibilidad: 50,
       subcategoria: segundo,
@@ -37,10 +41,11 @@ export async function productoSeed(dataSource: DataSource) {
     },
     {
       nombre: 'Cafe con leche',
-      descripcion: 'El mas exclusivo cafe con leche de toda la ciudad',
-      precio:12,
+      descripcion:
+        'Bebida suave y reconfortante preparada con café recién hecho y leche caliente. Perfecta para el desayuno o una pausa relajante',
+      precio: 12,
       disponibilidad: 30,
-      subcategoria: cafeSub, 
+      subcategoria: cafeSub,
       activo: true,
       imagen: '/uploads/productos/cafe_leche.jfif',
     },
@@ -58,4 +63,3 @@ export async function productoSeed(dataSource: DataSource) {
 
   console.log('✔ Productos creados correctamente');
 }
-

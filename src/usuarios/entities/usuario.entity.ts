@@ -36,6 +36,9 @@ export class Usuario extends Auditoria {
   @Column({ type: 'timestamp', nullable: true, default: null })
   verificacionExpirada!: Date | null;
 
+  @Column({ type: 'varchar', length: 2, default: 'es' })
+  idiomaPreferido!: string;
+
   @OneToMany(() => RolUsuario, (usuarioRol) => usuarioRol.usuario)
   roles!: RolUsuario[];
 

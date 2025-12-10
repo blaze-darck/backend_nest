@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Headers,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductoService } from '../productoService/productos.service';
@@ -16,20 +17,32 @@ import { ProductoService } from '../productoService/productos.service';
 export class ProductoController {
   constructor(private readonly service: ProductoService) {}
 
-  @Get()
-  findAll() {
-    return this.service.findAll();
+  private obtenerIdioma(headers: any): string {
+    const customLang = headers['x-app-language'];
+    if (customLang) return customLang;
+
+    const acceptLang = headers['accept-language'];
+    if (acceptLang) return acceptLang.split(',')[0].split('-')[0];
+
+    return 'es';
   }
 
+  @Get()
+  findAll(@Headers() headers: any) {
+    const idioma = this.obtenerIdioma(headers);
+    return this.service.findAll(idioma);
+  }
 
   @Get('activos')
-  findAllActive() {
-    return this.service.findAllActive();
+  findAllActive(@Headers() headers: any) {
+    const idioma = this.obtenerIdioma(headers);
+    return this.service.findAllActive(idioma);
   }
 
   @Get(':id')
-  findById(@Param('id') id: number) {
-    return this.service.findById(id);
+  findById(@Param('id') id: number, @Headers() headers: any) {
+    const idioma = this.obtenerIdioma(headers);
+    return this.service.findById(id, idioma);
   }
 
   @Post('upload')
@@ -53,6 +66,7 @@ export class ProductoController {
       imagen: imagen ? imagen.filename : null,
     });
   }
+
   @Patch(':id/estado')
   toggleEstado(@Param('id') id: number, @Body('activo') activo: boolean) {
     return this.service.toggleEstado(id, activo);

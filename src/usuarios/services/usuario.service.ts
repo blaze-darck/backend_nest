@@ -146,4 +146,18 @@ export class UsuarioService {
     registro.activo = false;
     return this.rolUsuarioRepository.save(registro);
   }
+
+  async actualizarIdioma(id: number, idioma: string) {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { id },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    return this.usuarioRepository.update(id, {
+      idiomaPreferido: idioma,
+    } as any);
+  }
 }

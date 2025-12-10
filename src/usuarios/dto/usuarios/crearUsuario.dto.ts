@@ -6,6 +6,7 @@ import {
   IsArray,
   IsOptional,
   IsNumber,
+  IsIn,
 } from 'class-validator';
 
 export class CreateUsuarioDto {
@@ -38,6 +39,11 @@ export class CreateUsuarioDto {
   @IsOptional()
   @IsString()
   telefono?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['es', 'en', 'ay'])
+  idiomaPreferido?: string;
 
   @IsOptional()
   @IsArray()
